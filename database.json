@@ -1,0 +1,11 @@
+{
+    "dev": {
+      "driver": "mysql",
+      "host": "localhost",
+      "user": "kannan-demo",
+      "password": "password",
+      "database": "major-project",
+      "port": 3306
+    }
+  }
+  
