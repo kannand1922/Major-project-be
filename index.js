@@ -4,7 +4,7 @@ import dbConnect from './config/db.js';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
-
+import { authMiddleware } from './middleware/index.js';
 const app = express();
 
 dotenv.config();
@@ -16,6 +16,18 @@ app.use(express.urlencoded({ extended: true }));
 
 const __dirname = path.resolve();
 const routesPath = path.join(__dirname, 'routes');
+
+
+app.use((req, res, next) => {
+  const excludedPaths = ['/auth/register']; 
+  console.log(req.path)
+  if (excludedPaths.includes(req.path)) {
+    return next(); 
+  }
+  return authMiddleware(req, res, next);
+});
+
+
 
 // Automatically load routes from each folder inside "routes" directory
 fs.readdirSync(routesPath).forEach((folderName) => {

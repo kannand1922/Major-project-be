@@ -2,6 +2,10 @@ import bcrypt from 'bcryptjs';
 import dbConnect from '../config/db.js';
 import { checkUserByEmail, insertUser } from '../queries/auth.js';
 
+import jwt from 'jsonwebtoken';
+
+const SECRET_KEY = 'secretkey'; 
+
 export async function register(req, res) {
   const { name, email, password } = req.body;
 
@@ -23,10 +27,17 @@ export async function register(req, res) {
 
     // Insert new user
     const [result] = await connection.execute(
-      insertUser(name, email, hashedPassword,'1')
+      insertUser(name, email, hashedPassword, '1')
     );
 
     const userId = result.insertId; // Get the inserted ID
+
+    // Generate a token
+    const token = jwt.sign(
+      { id: userId, email, role: '1' }, // Payload
+      SECRET_KEY, // Secret key
+      { expiresIn: '1d' } // Token expires in 1 day
+    );
 
     // Send response
     res.status(201).send({
@@ -36,8 +47,9 @@ export async function register(req, res) {
         id: userId,
         name: name,
         email: email,
-        role: `1`,
+        role: '1',
       },
+      token, // Include token in response
     });
   } catch (err) {
     console.error(err.message);
