@@ -18,14 +18,13 @@ const __dirname = path.resolve();
 const routesPath = path.join(__dirname, 'routes');
 
 
-app.use((req, res, next) => {
-  const excludedPaths = ['/auth/register']; 
-  console.log(req.path)
-  if (excludedPaths.includes(req.path)) {
-    return next(); 
-  }
-  return authMiddleware(req, res, next);
-});
+// app.use((req, res, next) => {
+//   const excludedPaths = ['/auth/register']; 
+//   if (excludedPaths.includes(req.path)) {
+//     return next(); 
+//   }
+//   // return authMiddleware(req, res, next);
+// });
 
 
 

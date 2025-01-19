@@ -39,10 +39,20 @@ export const fetchTableData = async (req, res) => {
 
   try {
     const connection = await dbConnect();
-    const query = fetchTableDataQuery(tableName);
+    const query = `SELECT * FROM ${tableName}`;
     const [rows] = await connection.execute(query);
 
-    res.status(200).json(rows);
+    const categoryQuery = `SELECT id FROM category_list WHERE name = ?`;
+    const [categoryRows] = await connection.execute(categoryQuery, [tableName]);
+
+    const categoryId = categoryRows.length ? categoryRows[0].id : null;
+
+    const response = {
+      data: rows,
+      categoryId
+    };
+
+    res.status(200).json(response);
   } catch (error) {
     console.error(error.message);
     res.status(500).send({ message: "Error fetching data" });

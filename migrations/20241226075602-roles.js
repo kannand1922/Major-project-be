@@ -41,19 +41,18 @@ exports.up = function (db) {
         name VARCHAR(255) NOT NULL
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
     `))
-    .then(() => db.createTable('users', {
-      id: { type: 'bigint', primaryKey: true, autoIncrement: true },
-      name: { type: 'string', notNull: true, length: 100 },
-      email: { type: 'string', notNull: true, length: 150 },
-      password: { type: 'string', notNull: true, length: 255 },
-      role_id: { type: 'bigint', notNull: true },
-      created_at: { type: 'datetime', notNull: true },
-      updated_at: { type: 'datetime', notNull: true },
-    }))
-    .then(() => db.addForeignKey('users', 'roles', 'fk_users_role_id', 
-      { role_id: 'id' }, 
-      { onDelete: 'CASCADE' }
-    ));
+    .then(() => db.runSql(`
+      CREATE TABLE IF NOT EXISTS users (
+        id BIGINT NOT NULL AUTO_INCREMENT,
+        name VARCHAR(100) NOT NULL,
+        email VARCHAR(150) NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        role_id BIGINT NOT NULL,
+        created_at DATETIME NOT NULL,
+        updated_at DATETIME NOT NULL,
+        PRIMARY KEY (id)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+    `));
 };
 
 exports.down = function (db) {

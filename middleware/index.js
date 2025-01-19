@@ -1,9 +1,8 @@
 import jwt from 'jsonwebtoken';
 
-const SECRET_KEY =  'secretkey'; // Use an environment variable for security
+const SECRET_KEY =  'secretkey';
 
 export const authMiddleware = (req, res, next) => {
-    console.log(req.headers);  // Log all headers to debug
   
     const authHeader = req.headers['authorization'];  // Access 'authorization' in lowercase (Node.js converts header names to lowercase)
   
