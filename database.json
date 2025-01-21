@@ -2,8 +2,8 @@
     "dev": {
       "driver": "mysql",
       "host": "localhost",
-      "user": "kannan-demo",
-      "password": "password",
+      "user": "root",
+      "password": "Nandhini@1922",
       "database": "major-project",
       "port": 3306
     }

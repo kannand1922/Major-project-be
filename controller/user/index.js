@@ -70,7 +70,7 @@ export const fetchCartItems = async (req, res) => {
         const [productResult] = await connection.execute(productQuery, [cartRow.product_id]);
 
         if (productResult.length > 0) {
-          const productPrice = productResult[0].price;
+          const productPrice = productResult[0].Price;
           const productTotal = productPrice * cartRow.count;
 
           // Add the product's total to the overall total price
