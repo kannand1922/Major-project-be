@@ -116,3 +116,64 @@ export const deleteProductById = async (req, res) => {
     res.status(500).send({ message: "Error deleting product" });
   }
 };
+
+
+export const getAllOrderDetails = async (req, res) => {
+  const connection = await dbConnect();
+  try {
+    // Step 1: Fetch all order details
+    const [orders] = await connection.execute(`
+      SELECT o.order_id, o.total_price, o.created_at, 
+             a.name, a.email, a.phone, a.address_line, a.city, a.state, a.pincode
+      FROM orders o
+      JOIN address a ON o.address_id = a.address_id
+    `);
+
+    if (orders.length === 0) {
+      return res.status(404).send({ message: "No orders found" });
+    }
+
+    // Step 2: Fetch order items and product details for each order
+    const orderDetailsPromises = orders.map(async (order) => {
+      const [orderItems] = await connection.execute(`
+        SELECT oi.order_id, oi.product_id, oi.category_id, oi.quantity, oi.total_price
+        FROM order_items oi
+        WHERE oi.order_id = ?
+      `, [order.order_id]);
+
+      const productDetailsPromises = orderItems.map(async (item) => {
+        const [categoryResult] = await connection.execute(`
+          SELECT name FROM category_list WHERE id = ?
+        `, [item.category_id]);
+
+        if (categoryResult.length === 0) {
+          throw new Error("Category not found");
+        }
+
+        const categoryName = categoryResult[0].name;
+
+        const [productDetails] = await connection.execute(`
+          SELECT * FROM \`${categoryName}\` WHERE id = ?
+        `, [item.product_id]);
+
+        return {
+          ...item,
+          productDetails: productDetails[0] || null
+        };
+      });
+
+      const detailedItems = await Promise.all(productDetailsPromises);
+      return {
+        ...order,
+        items: detailedItems
+      };
+    });
+
+    const detailedOrders = await Promise.all(orderDetailsPromises);
+    res.status(200).send({ orders: detailedOrders });
+
+  } catch (error) {
+    console.error("Error fetching all order details:", error.message);
+    res.status(500).send({ message: "Error fetching all order details" });
+  }
+};

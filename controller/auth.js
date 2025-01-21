@@ -27,11 +27,10 @@ export async function register(req, res) {
 
     // Insert new user
     const [result] = await connection.execute(
-      insertUser(name, email, hashedPassword, '1')
+      insertUser(name, email, hashedPassword, '2')
     );
 
     const userId = result.insertId; // Get the inserted ID
-
     // Generate a token
     const token = jwt.sign(
       { id: userId, email, role: '1' }, // Payload
@@ -47,7 +46,7 @@ export async function register(req, res) {
         id: userId,
         name: name,
         email: email,
-        role: '1',
+        role: '2',
       },
       token, // Include token in response
     });
@@ -94,7 +93,7 @@ export async function login(req, res) {
         id: userData.id,
         name: userData.name,
         email: userData.email,
-        role: userData.role,
+        role: userData.role_id,
       },
     });
   } catch (err) {

@@ -4,7 +4,8 @@ import {
   fetchTableData,
   updateProductById,
   fetchProductById,
-  deleteProductById
+  deleteProductById,
+  getAllOrderDetails
 } from "../../controller/admin/product.js";
 import {
   insertCategory,
@@ -44,4 +45,6 @@ router.delete("/:tableName/category", deleteCategory);
 
 // Add a column to an existing table
 router.post("/add-column", addColumnToTable);
+
+router.get("/orders",getAllOrderDetails)
 export default router;
