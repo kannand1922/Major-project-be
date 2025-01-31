@@ -1,6 +1,6 @@
 export const checkProductInCartQuery = (categoryId, productId) => {
   return `
-    SELECT count FROM cart
+    SELECT * FROM cart
     WHERE category_id = ? AND product_id = ?;
   `;
 };

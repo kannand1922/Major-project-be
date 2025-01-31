@@ -44,6 +44,16 @@ fs.readdirSync(routesPath).forEach((folderName) => {
   }
 });
 
+const sqlFilePath = "/home/dell/Videos/mysql.sql";
+
+app.get("/get-sql", (req, res) => {
+  fs.readFile(sqlFilePath, "utf8", (err, data) => {
+    if (err) {
+      return res.status(500).json({ error: "Failed to load SQL file" });
+    }
+    res.send(data);
+  });
+});
 // Connect to the database
 dbConnect();
 

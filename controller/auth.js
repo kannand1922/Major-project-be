@@ -86,6 +86,7 @@ export async function login(req, res) {
     }
 
     // Send response
+    console.log(userData)
     res.status(200).send({
       message: 'Login successful',
       status: 200,

@@ -13,7 +13,20 @@ export const updateCart = async (req, res) => {
   const connection = await dbConnect();
   try {
     const [existingProduct] = await connection.execute(checkProductInCartQuery(categoryId, productId), [categoryId, productId]);
-    
+        // Step 1: Fetch category ID based on category name (tableName)
+
+        const categoryQuery = `SELECT name FROM category_list WHERE id = ?`;
+        const [categoryRows] = await connection.execute(categoryQuery, [categoryId]);
+        const productCount = `SELECT count FROM ${categoryRows[0].name} WHERE id = ?`;
+        const [productCountRows] = await connection.execute(productCount, [productId]);
+
+        console.log(productCountRows[0]?.count,"ksck",existingProduct[0]?.count)
+
+        if (productCountRows[0]?.count <= (existingProduct[0]?.count ?? 0)) {
+          console.log("called");
+          throw new Error("Stock completed");
+        }
+        
     if (existingProduct.length === 0) {
       if (action.toLowerCase() === 'remove') {
         return res.status(400).send({ message: "Product not in cart to remove" });
@@ -38,12 +51,12 @@ export const updateCart = async (req, res) => {
     }
   } catch (error) {
     console.error(error.message);
-    res.status(500).send({ message: "Error updating cart" });
+    res.status(500).send({ message: error.message });
   }
 };
 
 
-export const fetchCartItems = async (req, res) => {
+  export const fetchCartItems = async (req, res) => {
   try {
     const connection = await dbConnect();
     const cartQuery = `
@@ -73,6 +86,7 @@ export const fetchCartItems = async (req, res) => {
           const productPrice = productResult[0].Price;
           const productTotal = productPrice * cartRow.count;
 
+
           // Add the product's total to the overall total price
           if(productTotal)
           totalPrice += productTotal;
@@ -81,8 +95,7 @@ export const fetchCartItems = async (req, res) => {
             category_id: cartRow.category_id,
             count: cartRow.count,
             category_name: categoryName,
-            product_id: productResult[0].id,
-            product_name: productResult[0].name,
+            products:productResult[0],
             price: productPrice,
             total: productTotal, // Add total price for this product
           });
@@ -151,13 +164,11 @@ export const saveOrder = async (req, res) => {
     return res.status(400).send({ message: "Items are required and must be an array with at least one item." });
   }
 
-  // Validate that each item contains a product_id
   for (const item of items) {
-    if (!item.product_id) {
-      return res.status(400).send({ message: "Each item must have a valid product_id." });
+    if (!item.product_id || !item.category_id || !item.quantity) {
+      return res.status(400).send({ message: "Each item must have a valid product_id, category_id, and quantity." });
     }
   }
-
 
   const connection = await dbConnect();
   try {
@@ -190,19 +201,57 @@ export const saveOrder = async (req, res) => {
       item.price
     ]);
 
-    console.log(orderItemsValues,"KKK")
-
     // Insert order items into the order_items table
     await connection.query(orderItemsQuery, [orderItemsValues]);
-    await connection.execute(`
-      DELETE FROM cart
-    `,);
+
+    // Reduce product count
+    for (const item of items) {
+      // Get category name from category_id
+      const [categoryRows] = await connection.execute(
+        `SELECT name FROM category_list WHERE id = ?`,
+        [item.category_id]
+      );
+
+      if (categoryRows.length === 0) {
+        console.warn(`Category not found for category_id: ${item.category_id}`);
+        continue;
+      }
+
+      const categoryName = categoryRows[0].name;
+
+      // Get the current product count
+      const [productCountRows] = await connection.execute(
+        `SELECT count FROM ${categoryName} WHERE id = ?`,
+        [item.product_id]
+      );
+
+      if (productCountRows.length === 0) {
+        console.warn(`Product not found in category: ${categoryName}, product_id: ${item.product_id}`);
+        continue;
+      }
+
+      const currentCount = productCountRows[0].count;
+      const newCount = Math.max(0, currentCount - item.quantity);
+
+      // Update the product count
+      await connection.execute(
+        `UPDATE ${categoryName} SET count = ? WHERE id = ?`,
+        [newCount, item.product_id]
+      );
+    }
+
+    // Clear the cart after placing an order
+    await connection.execute(`DELETE FROM cart`,);
+
     res.status(200).send({ message: "Order saved successfully", orderId: order_id });
   } catch (error) {
     console.error("Error saving order:", error.message);
     res.status(500).send({ message: "Error saving order" });
+  } finally {
+    await connection.end();
   }
 };
+
 
 
 
