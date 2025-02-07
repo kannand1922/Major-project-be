@@ -17,15 +17,18 @@ export const updateCart = async (req, res) => {
 
         const categoryQuery = `SELECT name FROM category_list WHERE id = ?`;
         const [categoryRows] = await connection.execute(categoryQuery, [categoryId]);
-        const productCount = `SELECT count FROM ${categoryRows[0].name} WHERE id = ?`;
+        const productCount = `SELECT stock FROM ${categoryRows[0].name} WHERE id = ?`;
         const [productCountRows] = await connection.execute(productCount, [productId]);
 
         console.log(productCountRows[0]?.count,"ksck",existingProduct[0]?.count)
 
-        if (productCountRows[0]?.count <= (existingProduct[0]?.count ?? 0)) {
+        if(action=="ADD")
+        {
+        if (productCountRows[0]?.stock <= (existingProduct[0]?.count ?? 0)) {
           console.log("called");
           throw new Error("Stock completed");
         }
+      }
         
     if (existingProduct.length === 0) {
       if (action.toLowerCase() === 'remove') {
@@ -221,7 +224,7 @@ export const saveOrder = async (req, res) => {
 
       // Get the current product count
       const [productCountRows] = await connection.execute(
-        `SELECT count FROM ${categoryName} WHERE id = ?`,
+        `SELECT stock FROM ${categoryName} WHERE id = ?`,
         [item.product_id]
       );
 
@@ -235,7 +238,7 @@ export const saveOrder = async (req, res) => {
 
       // Update the product count
       await connection.execute(
-        `UPDATE ${categoryName} SET count = ? WHERE id = ?`,
+        `UPDATE ${categoryName} SET stock = ? WHERE id = ?`,
         [newCount, item.product_id]
       );
     }
