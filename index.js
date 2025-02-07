@@ -44,7 +44,7 @@ fs.readdirSync(routesPath).forEach((folderName) => {
   }
 });
 
-const sqlFilePath = "/home/dell/Videos/mysql.sql";
+const sqlFilePath = "C://Users//91866//OneDrive//Documents//dumps//DumpMajorProject.sql";
 
 app.get("/get-sql", (req, res) => {
   fs.readFile(sqlFilePath, "utf8", (err, data) => {
