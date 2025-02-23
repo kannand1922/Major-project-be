@@ -227,22 +227,14 @@ export const saveOrder = async (req, res) => {
         `SELECT stock FROM ${categoryName} WHERE id = ?`,
         [item.product_id]
       );
-
-      if (productCountRows.length === 0) {
-        console.warn(`Product not found in category: ${categoryName}, product_id: ${item.product_id}`);
-        continue;
-      }
-
-      const currentCount = productCountRows[0].count;
-      const newCount = Math.max(0, currentCount - item.quantity);
-
-      // Update the product count
+      const currentStock = productCountRows[0].count;
+      const newStock = Math.max(0, currentStock - item.quantity);
       await connection.execute(
         `UPDATE ${categoryName} SET stock = ? WHERE id = ?`,
-        [newCount, item.product_id]
+        [newStock, item.product_id]
       );
+      
     }
-
     // Clear the cart after placing an order
     await connection.execute(`DELETE FROM cart`,);
 
