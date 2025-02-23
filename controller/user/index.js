@@ -242,9 +242,7 @@ export const saveOrder = async (req, res) => {
   } catch (error) {
     console.error("Error saving order:", error.message);
     res.status(500).send({ message: "Error saving order" });
-  } finally {
-    await connection.end();
-  }
+  } 
 };
 
 
