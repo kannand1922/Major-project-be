@@ -227,7 +227,7 @@ export const saveOrder = async (req, res) => {
         `SELECT stock FROM ${categoryName} WHERE id = ?`,
         [item.product_id]
       );
-      const currentStock = productCountRows[0].count;
+      const currentStock = productCountRows[0].stock;
       const newStock = Math.max(0, currentStock - item.quantity);
       await connection.execute(
         `UPDATE ${categoryName} SET stock = ? WHERE id = ?`,
